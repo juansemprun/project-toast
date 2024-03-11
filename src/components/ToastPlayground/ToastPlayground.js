@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import Button from '../Button';
-import Toast from '../Toast/Toast';
+import ToastShelf from '../ToastShelf/ToastShelf';
 
 import styles from './ToastPlayground.module.css';
 
@@ -9,11 +9,34 @@ const VARIANT_OPTIONS = ['notice', 'warning', 'success', 'error'];
 
 function ToastPlayground() {
   const [message, setMessage] = useState('');
-  const [variant, setVariant] = useState('notice');
-  const [isRendered, setIsRendered] = useState(false);
+  const [variant, setVariant] = useState(VARIANT_OPTIONS[0]);
+  const [toasts, setToasts] = useState([]);
 
-  function handleDismiss() {
-    setIsRendered(false);
+  function handleSubmit(event) {
+    event.preventDefault();
+
+    handleCreateToast();
+    setMessage('');
+    setVariant(VARIANT_OPTIONS[0]);
+  }
+
+  function handleCreateToast() {
+    const newToast = {
+      id: crypto.randomUUID(),
+      variant,
+      message,
+    };
+
+    const nextToasts = [...toasts, newToast];
+    setToasts(nextToasts);
+  }
+
+  function handleDismiss(id) {
+    const nextToasts = toasts.filter((toast) => {
+      return toast.id !== id;
+    });
+
+    setToasts(nextToasts);
   }
 
   return (
@@ -23,13 +46,18 @@ function ToastPlayground() {
         <h1>Toast Playground</h1>
       </header>
 
-      {isRendered && (
-        <Toast variant={variant} handleDismiss={handleDismiss}>
-          {message}
-        </Toast>
-      )}
+      <ToastShelf
+        variant={variant}
+        toasts={toasts}
+        handleDismiss={handleDismiss}
+      >
+        {message}
+      </ToastShelf>
 
-      <div className={styles.controlsWrapper}>
+      <form
+        className={styles.controlsWrapper}
+        onSubmit={handleSubmit}
+      >
         <div className={styles.row}>
           <label
             htmlFor="message"
@@ -80,12 +108,10 @@ function ToastPlayground() {
           <div
             className={`${styles.inputWrapper} ${styles.radioWrapper}`}
           >
-            <Button onClick={() => setIsRendered(true)}>
-              Pop Toast!
-            </Button>
+            <Button>Pop Toast!</Button>
           </div>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
